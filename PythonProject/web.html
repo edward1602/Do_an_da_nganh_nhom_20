@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test MQTT</title>
+    <script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <h1>Status: <span id="status">Connecting...</span></h1>
+    <h2 id="led">LED: Waiting...</h2>
+    <h2 id="temp">Temp: Waiting...</h2>
+
+    <script>
+        const statusEl = document.getElementById("status");
+        
+        statusEl.innerText = "Đang kết nối...";
+        
+        const client = mqtt.connect("wss://io.adafruit.com:443", {
+            username: "",
+            password: "",
+            reconnectPeriod: 1000
+        });
+
+        client.on("connect", function () {
+            statusEl.innerText = "✅ Đã kết nối!";
+            statusEl.style.color = "green";
+            client.subscribe("khanhdoan1602/feeds/bbc-led");
+            client.subscribe("khanhdoan1602/feeds/bbc-temp");
+        });
+
+        client.on("error", function (error) {
+            statusEl.innerText = "❌ Lỗi: " + error.message;
+            statusEl.style.color = "red";
+        });
+
+        client.on("message", function (topic, message) {
+            const value = message.toString();
+            
+            if (topic.includes("bbc-led")) {
+                document.getElementById("led").innerText = "LED: " + (value == "1" ? "ON" : "OFF");
+            } else if (topic.includes("bbc-temp")) {
+                document.getElementById("temp").innerText = "Temp: " + value + "°C";
+            }
+        });
+    </script>
+</body>
+</html>
